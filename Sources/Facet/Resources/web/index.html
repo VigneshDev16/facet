@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111113">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>Facet</title>
+<style>
+  :root{
+    --bg:#111113; --surface:#1b1b1f; --line:#2c2c33;
+    --text:#f2f2f5; --dim:#9a9aa6; --accent:#6f7dff; --danger:#ff6b6b;
+    --safe-t:env(safe-area-inset-top); --safe-b:env(safe-area-inset-bottom);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--text);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; overscroll-behavior-y:none;
+  }
+  button,input{font:inherit;color:inherit}
+  button{background:none;border:0;cursor:pointer}
+  .hidden{display:none !important}
+
+  /* ---- login ---- */
+  #login{position:fixed;inset:0;display:grid;place-items:center;padding:24px;background:var(--bg);z-index:50}
+  .card{width:100%;max-width:330px}
+  .logo{width:56px;height:56px;border-radius:15px;margin:0 auto 18px;
+        background:linear-gradient(160deg,#404cd6,#8b5cf6);display:grid;place-items:center;font-size:27px}
+  .card h1{font-size:21px;margin:0 0 4px;text-align:center}
+  .card p.sub{color:var(--dim);text-align:center;margin:0 0 22px;font-size:13.5px}
+  .field{width:100%;padding:13px 14px;margin-bottom:10px;border-radius:11px;
+         background:var(--surface);border:1px solid var(--line);outline:none}
+  .field:focus{border-color:var(--accent)}
+  .primary{width:100%;padding:13px;border-radius:11px;background:var(--accent);
+           color:#fff;font-weight:600;margin-top:6px}
+  .primary:disabled{opacity:.55}
+  #loginErr{color:var(--danger);font-size:13px;min-height:18px;margin-top:10px;text-align:center}
+
+  /* ---- chrome ---- */
+  header{position:sticky;top:0;z-index:20;background:rgba(17,17,19,.86);
+         backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--line);
+         padding:calc(var(--safe-t) + 9px) 12px 9px}
+  .searchrow{display:flex;gap:8px;align-items:center}
+  #q{flex:1;padding:10px 13px;border-radius:11px;background:var(--surface);
+     border:1px solid var(--line);outline:none;-webkit-appearance:none}
+  #q:focus{border-color:var(--accent)}
+  .iconbtn{padding:8px 10px;border-radius:10px;color:var(--dim);font-size:13px}
+  .tabs{display:flex;gap:6px;margin-top:9px}
+  .tab{padding:6px 14px;border-radius:999px;font-size:13.5px;color:var(--dim);background:var(--surface)}
+  .tab.on{background:var(--accent);color:#fff;font-weight:600}
+  #chips{display:flex;gap:7px;margin-top:9px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #chips:empty{display:none}
+  .chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none;
+        padding:5px 11px;border-radius:999px;background:rgba(111,125,255,.18);
+        color:var(--accent);font-size:12.5px}
+  .chip b{font-weight:600}
+
+  /* ---- grids ---- */
+  main{padding:8px 8px calc(var(--safe-b) + 28px)}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:5px}
+  #grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;
+            background:var(--surface);display:block}
+  #people{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:16px 10px;padding:10px 4px}
+  .person{text-align:center}
+  .person img,.person .blank{width:76px;height:76px;border-radius:50%;object-fit:cover;
+        background:var(--surface);margin:0 auto 7px;display:block}
+  .person .nm{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .person .ct{font-size:11px;color:var(--dim)}
+  .empty{text-align:center;color:var(--dim);padding:64px 24px;font-size:14px}
+  #more{text-align:center;color:var(--dim);padding:18px;font-size:13px}
+
+  /* ---- viewer ---- */
+  #viewer{position:fixed;inset:0;background:#000;z-index:40;display:flex;flex-direction:column}
+  .vtop{display:flex;align-items:center;gap:10px;padding:calc(var(--safe-t) + 10px) 12px 10px;
+        background:rgba(0,0,0,.62);backdrop-filter:blur(14px)}
+  .vtop .meta{flex:1;min-width:0}
+  .vtop .nm{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vtop .dt{font-size:11.5px;color:var(--dim)}
+  .vwrap{flex:1;position:relative;display:grid;place-items:center;overflow:hidden}
+  .vwrap img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+  #faces{position:absolute;inset:0;pointer-events:none}
+  #faces button{position:absolute;border:1.5px solid rgba(255,255,255,.9);border-radius:5px;
+                pointer-events:auto;background:transparent}
+  #faces span{position:absolute;left:50%;transform:translateX(-50%);bottom:-23px;
+              white-space:nowrap;font-size:11px;padding:2px 8px;border-radius:999px;
+              background:var(--accent);color:#fff}
+  .vbot{display:flex;align-items:center;justify-content:center;gap:26px;
+        padding:12px 12px calc(var(--safe-b) + 14px);background:rgba(0,0,0,.62)}
+  .vbot .count{font-size:12.5px;color:var(--dim);min-width:82px;text-align:center}
+  .nav{font-size:21px;padding:6px 16px;color:var(--text)}
+  .nav:disabled{opacity:.28}
+  a.dl{color:var(--accent);text-decoration:none;font-size:14px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <div class="logo">◎</div>
+    <h1>Facet</h1>
+    <p class="sub">Sign in to browse the photo library.</p>
+    <form id="loginForm" autocomplete="on">
+      <input class="field" id="u" name="username" placeholder="Username" autocapitalize="none" autocorrect="off" required>
+      <input class="field" id="p" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button class="primary" id="go" type="submit">Sign in</button>
+    </form>
+    <div id="loginErr"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="searchrow">
+      <input id="q" placeholder="Search photos — try “beach sunset”" enterkeyhint="search">
+      <button class="iconbtn" id="out">Sign out</button>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-tab="photos">Photos</button>
+      <button class="tab" data-tab="people">People</button>
+    </div>
+    <div id="chips"></div>
+  </header>
+  <main>
+    <div id="grid"></div>
+    <div id="people" class="hidden"></div>
+    <div id="more"></div>
+  </main>
+</div>
+
+<div id="viewer" class="hidden">
+  <div class="vtop">
+    <button class="nav" id="vclose">✕</button>
+    <div class="meta"><div class="nm" id="vname"></div><div class="dt" id="vdate"></div></div>
+    <a class="dl" id="vdl" download>Download</a>
+  </div>
+  <div class="vwrap" id="vwrap">
+    <img id="vimg" alt="">
+    <div id="faces"></div>
+  </div>
+  <div class="vbot">
+    <button class="nav" id="vprev">‹</button>
+    <div class="count" id="vcount"></div>
+    <button class="nav" id="vnext">›</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { tab:"photos", q:"", person:null, personName:"", similar:null,
+                photos:[], total:0, offset:0, loading:false, done:false, index:-1 };
+
+  function api(path, opts){
+    return fetch(path, Object.assign({credentials:"same-origin"}, opts||{})).then(function(r){
+      if(r.status === 401){ showLogin(); throw new Error("signed out"); }
+      if(!r.ok) return r.json().catch(function(){ return {error:"Request failed"}; })
+                              .then(function(e){ throw new Error(e.error || "Request failed"); });
+      return r.json();
+    });
+  }
+
+  /* ---------- auth ---------- */
+  function showLogin(){ $("login").classList.remove("hidden"); $("app").classList.add("hidden"); }
+  function showApp(){ $("login").classList.add("hidden"); $("app").classList.remove("hidden"); }
+
+  $("loginForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var btn = $("go"); btn.disabled = true; $("loginErr").textContent = "";
+    fetch("/api/login", {
+      method:"POST", credentials:"same-origin",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ username:$("u").value, password:$("p").value })
+    }).then(function(r){
+      return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||"Sign-in failed"); return j; });
+    }).then(function(){
+      $("p").value = ""; showApp(); reset(); load();
+    }).catch(function(err){ $("loginErr").textContent = err.message; })
+      .then(function(){ btn.disabled = false; });
+  });
+
+  $("out").addEventListener("click", function(){
+    api("/api/logout", {method:"POST"}).catch(function(){}).then(function(){ location.reload(); });
+  });
+
+  /* ---------- chips ---------- */
+  function renderChips(){
+    var c = $("chips"); c.innerHTML = "";
+    function add(label, value, onClear){
+      var el = document.createElement("span"); el.className = "chip";
+      el.innerHTML = "<b></b><span></span> ✕";
+      el.querySelector("b").textContent = label;
+      el.querySelector("span").textContent = value;
+      el.addEventListener("click", onClear);
+      c.appendChild(el);
+    }
+    if(state.person) add("Person: ", state.personName, function(){
+      state.person = null; state.personName=""; reset(); load();
+    });
+    if(state.similar) add("Looks like ", "this face", function(){
+      state.similar = null; reset(); load();
+    });
+  }
+
+  /* ---------- listing ---------- */
+  function reset(){ state.photos=[]; state.offset=0; state.done=false; state.total=0; $("grid").innerHTML=""; $("more").textContent=""; }
+
+  function query(){
+    var p = "/api/photos?limit=100&offset=" + state.offset;
+    if(state.similar) p += "&similar=" + state.similar;
+    else {
+      if(state.q) p += "&q=" + encodeURIComponent(state.q);
+      if(state.person) p += "&person=" + state.person;
+    }
+    return p;
+  }
+
+  function load(){
+    if(state.loading || state.done) return;
+    state.loading = true;
+    $("more").textContent = "Loading…";
+    api(query()).then(function(d){
+      state.total = d.total;
+      if(!d.photos.length){ state.done = true; }
+      d.photos.forEach(function(ph){ state.photos.push(ph); appendCell(ph, state.photos.length-1); });
+      state.offset += d.photos.length;
+      if(state.offset >= d.total) state.done = true;
+      $("more").textContent = state.photos.length
+        ? (state.done ? state.total + " photos" : "")
+        : "";
+      if(!state.photos.length){
+        $("grid").innerHTML = '<div class="empty" style="grid-column:1/-1">No photos match.</div>';
+      }
+      state.loading = false;
+      maybeLoadMore();
+    }).catch(function(e){
+      state.loading = false;
+      $("more").textContent = e.message;
+    });
+  }
+
+  function appendCell(ph, idx){
+    var img = document.createElement("img");
+    img.src = "/thumb/" + ph.id + ".jpg";
+    img.loading = "lazy"; img.decoding = "async"; img.alt = ph.name;
+    img.addEventListener("click", function(){ openViewer(idx); });
+    $("grid").appendChild(img);
+  }
+
+  function maybeLoadMore(){
+    if(state.tab !== "photos" || state.done || state.loading) return;
+    if(window.innerHeight + window.scrollY > document.body.offsetHeight - 900) load();
+  }
+  window.addEventListener("scroll", maybeLoadMore, {passive:true});
+
+  /* ---------- people ---------- */
+  function loadPeople(){
+    $("people").innerHTML = '<div class="empty" style="grid-column:1/-1">Loading…</div>';
+    api("/api/people").then(function(d){
+      $("people").innerHTML = "";
+      if(!d.people.length){
+        $("people").innerHTML = '<div class="empty" style="grid-column:1/-1">No people grouped yet.</div>';
+        return;
+      }
+      d.people.forEach(function(p){
+        var el = document.createElement("div"); el.className = "person";
+        var pic = p.cover
+          ? '<img src="/face/' + p.cover + '.jpg" alt="" loading="lazy">'
+          : '<div class="blank"></div>';
+        el.innerHTML = pic + '<div class="nm"></div><div class="ct"></div>';
+        el.querySelector(".nm").textContent = p.name;
+        el.querySelector(".ct").textContent = p.count + (p.count === 1 ? " photo" : " photos");
+        el.addEventListener("click", function(){
+          state.person = p.id; state.personName = p.name; state.similar = null;
+          switchTab("photos"); reset(); renderChips(); load();
+        });
+        $("people").appendChild(el);
+      });
+    }).catch(function(e){ $("people").innerHTML = '<div class="empty">' + e.message + '</div>'; });
+  }
+
+  /* ---------- tabs & search ---------- */
+  function switchTab(name){
+    state.tab = name;
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+      t.classList.toggle("on", t.dataset.tab === name);
+    });
+    $("grid").classList.toggle("hidden", name !== "photos");
+    $("more").classList.toggle("hidden", name !== "photos");
+    $("people").classList.toggle("hidden", name !== "people");
+    if(name === "people") loadPeople();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+    t.addEventListener("click", function(){ switchTab(t.dataset.tab); });
+  });
+
+  var timer = null;
+  $("q").addEventListener("input", function(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      state.q = $("q").value.trim();
+      state.similar = null;
+      renderChips(); reset(); load();
+    }, 320);
+  });
+
+  /* ---------- viewer ---------- */
+  function openViewer(i){
+    state.index = i;
+    var ph = state.photos[i];
+    if(!ph) return;
+    $("viewer").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    $("vname").textContent = ph.name;
+    $("vdate").textContent = ph.date ? new Date(ph.date).toLocaleString() : "";
+    $("vcount").textContent = (i+1) + " of " + state.total;
+    $("vdl").href = "/download/" + ph.id;
+    $("vprev").disabled = i <= 0;
+    $("vnext").disabled = i >= state.photos.length - 1;
+    $("faces").innerHTML = "";
+    var img = $("vimg");
+    img.src = "/image/" + ph.id + ".jpg?w=1600";
+    img.onload = function(){ drawFaces(ph.id); };
+  }
+
+  function drawFaces(id){
+    api("/api/photo/" + id).then(function(d){
+      var img = $("vimg"), box = $("faces");
+      box.innerHTML = "";
+      if(!d.faces || !d.faces.length) return;
+      // Map normalised face boxes onto the letterboxed <img> content area.
+      var cw = img.clientWidth, ch = img.clientHeight;
+      var nat = img.naturalWidth / img.naturalHeight;
+      var dw = cw, dh = cw / nat;
+      if(dh > ch){ dh = ch; dw = ch * nat; }
+      var ox = (img.parentElement.clientWidth - dw)/2, oy = (img.parentElement.clientHeight - dh)/2;
+      d.faces.forEach(function(f){
+        var b = document.createElement("button");
+        b.style.left = (ox + f.x*dw) + "px";
+        b.style.top = (oy + f.y*dh) + "px";
+        b.style.width = (f.w*dw) + "px";
+        b.style.height = (f.h*dh) + "px";
+        if(f.name){
+          var s = document.createElement("span"); s.textContent = f.name; b.appendChild(s);
+        }
+        b.title = f.name ? ("Show photos of " + f.name) : "Find photos with this face";
+        b.addEventListener("click", function(ev){
+          ev.stopPropagation();
+          closeViewer();
+          state.similar = f.id; state.person = null; state.q = ""; $("q").value = "";
+          switchTab("photos"); renderChips(); reset(); load();
+        });
+        box.appendChild(b);
+      });
+    }).catch(function(){});
+  }
+
+  function closeViewer(){
+    $("viewer").classList.add("hidden");
+    document.body.style.overflow = "";
+    $("vimg").src = "";
+  }
+  function step(d){
+    var n = state.index + d;
+    if(n < 0 || n >= state.photos.length) return;
+    openViewer(n);
+    if(n > state.photos.length - 12) load();
+  }
+  $("vclose").addEventListener("click", closeViewer);
+  $("vprev").addEventListener("click", function(){ step(-1); });
+  $("vnext").addEventListener("click", function(){ step(1); });
+  document.addEventListener("keydown", function(e){
+    if($("viewer").classList.contains("hidden")) return;
+    if(e.key === "Escape") closeViewer();
+    if(e.key === "ArrowLeft") step(-1);
+    if(e.key === "ArrowRight") step(1);
+  });
+  // Horizontal swipe moves between photos.
+  var sx = 0, sy = 0;
+  $("vwrap").addEventListener("touchstart", function(e){
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, {passive:true});
+  $("vwrap").addEventListener("touchend", function(e){
+    var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)*1.6) step(dx < 0 ? 1 : -1);
+    else if(dy > 90 && Math.abs(dy) > Math.abs(dx)) closeViewer();
+  }, {passive:true});
+  window.addEventListener("resize", function(){
+    if(!$("viewer").classList.contains("hidden") && state.index >= 0){
+      var ph = state.photos[state.index]; if(ph) drawFaces(ph.id);
+    }
+  });
+
+  /* ---------- boot ---------- */
+  api("/api/me").then(function(){ showApp(); load(); })
+                .catch(function(){ /* showLogin already ran on 401 */ });
+})();
+</script>
+</body>
+</html>

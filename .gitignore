@@ -1,0 +1,26 @@
+# Build products
+.build/
+dist/
+*.xcuserdatad
+.DS_Store
+
+# Model conversion toolchain (recreate with scripts/bootstrap.sh)
+.venv-convert/
+
+# Model weights — these exceed GitHub's 100 MB file limit and are reproducible.
+# `bash scripts/bootstrap.sh` downloads and converts them.
+models/
+Sources/Facet/Resources/Models/
+Sources/Facet/Resources/bpe_simple_vocab_16e6.txt
+
+# Benchmark data and scratch output
+build/
+
+# Python scratch
+__pycache__/
+*.pyc
+
+# Vendored third-party reference files, fetched on demand by
+# scripts/make_tokenizer_fixtures.py rather than committed here.
+scripts/_ref_simple_tokenizer.py
+scripts/bpe_simple_vocab_16e6.txt.gz
