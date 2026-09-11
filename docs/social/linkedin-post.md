@@ -10,6 +10,26 @@ Series: "building real solutions to problems I actually run into." Part 1 was Be
 3. Put the links in the **first comment**, not the post body — LinkedIn throttles
    reach on posts containing outbound links.
 
+## Carousel document title
+
+LinkedIn asks for a title when you upload the PDF. It's shown on the carousel card in
+the feed, above the first slide — it's the hook people read before deciding to swipe,
+so it does real work. Keep it under ~60 characters; the feed truncates past that.
+
+**Recommended**
+
+    Finding one person meant scrolling. So I built my own.   (53)
+
+**Alternatives**
+
+    Face search for your photos, without the cloud           (45)
+    I built a face-search photo gallery for my Mac           (45)
+    3,273 photos. One person. Twenty minutes of scrolling.   (53)
+    Your photos, searchable by face — all on your Mac        (48)
+
+Avoid a bare product name ("Facet") — nobody knows what it is yet, and the title is
+the only thing working before the swipe.
+
 ## Links
 
 - Code: https://github.com/VigneshDev16/facet
