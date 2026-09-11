@@ -5,6 +5,12 @@ and groups them into people — plus natural-language search over your photos.
 Everything runs locally on the Neural Engine; nothing leaves the machine.
 
 ![built with SwiftUI](https://img.shields.io/badge/SwiftUI-macOS%2015%2B-blue)
+![licence](https://img.shields.io/badge/licence-AGPL--3.0-green)
+![LFW](https://img.shields.io/badge/LFW%20verification-99.32%25-brightgreen)
+
+> **Cloning this?** Run `bash scripts/bootstrap.sh` first. Model weights are ~270 MB
+> and aren't committed, so `swift build` fails until that's done. The script fetches
+> and converts everything in one go.
 
 ## What it does
 

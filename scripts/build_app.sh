@@ -5,6 +5,17 @@ ROOT="$PWD"
 APP="$ROOT/dist/Facet.app"
 VERSION="1.0"
 
+if [ ! -d "Sources/Facet/Resources/Models/ArcFace.mlmodelc" ] \
+   || [ ! -f "Sources/Facet/Resources/bpe_simple_vocab_16e6.txt" ]; then
+  echo "ERROR: the ML models aren't set up yet." >&2
+  echo "       Model weights are ~270 MB and aren't committed to git." >&2
+  echo "       Run this once, then try again:" >&2
+  echo "" >&2
+  echo "           bash scripts/bootstrap.sh" >&2
+  echo "" >&2
+  exit 1
+fi
+
 echo "==> swift build (release)"
 swift build -c release
 
